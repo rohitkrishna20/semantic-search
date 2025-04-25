@@ -6,7 +6,7 @@ app = Flask(__name__)
 OLLAMA_MODEL = "llama3"
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
-@app.route('/query'. methods=['POST'])
+@app.route('/query', methods=['POST'])
 def query_ollama():
   data = request.json
   keyword = data.get("keyword", "")
@@ -16,11 +16,11 @@ def query_ollama():
     "prompt": prompt,
     "stream": False
   }
-  ollama_response = requests.post(OLLAMA_URL. json=ollama_payload)
+  ollama_response = requests.post(OLLAMA_URL, json=ollama_payload)
   result = ollama_response.json()
   return jsonify({
     "keyword": keyword,
-    "response": result.get("response". "no result")
+    "response": result.get("response", "no result")
                            })
   __name__ == '__main__':
     app.run(debug=True)
