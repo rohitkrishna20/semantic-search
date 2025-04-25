@@ -20,6 +20,8 @@ def query_ollama():
     
     ollama_response = requests.post(OLLAMA_URL, json=ollama_payload)
     result = ollama_response.json()
+
+    print("OLLAMA response:", result)
     
     return jsonify({
         "keyword": keyword,
