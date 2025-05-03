@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import fitz
 import os
 import requests
@@ -11,12 +11,6 @@ UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route('/query', methods=['POST'])
-def query_pdf():
-    # Debugging: log received data
-    print("Received file:", request.files)
-    print("Received question:", request.form.get('question'))
-
-    # Get the file and question from the request
     file = request.files.get('file')
     question = request.form.get('question')
 
