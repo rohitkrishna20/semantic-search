@@ -11,6 +11,7 @@ UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route('/query', methods=['POST'])
+def query():
     file = request.files.get('file')
     question = request.form.get('question')
 
