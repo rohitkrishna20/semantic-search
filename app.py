@@ -25,8 +25,8 @@ def query():
         file.save(filepath)
         files_to_search.append(filepath)
     else:
-        for filename in os.listedir(UPLOAD_FOLDER):
-            if filename.ednswith('.pdf'):
+        for filename in os.listir(UPLOAD_FOLDER):
+            if filename.endswith('.pdf'):
                 files_to_search.append(os.path.join(UPLOAD_FOLDER, filename))
 
     if not files_to_search:
@@ -44,11 +44,11 @@ def query():
 
         keyword_prompt = f"From the pdf, obtain the main idea:\n\n{limited_text}"
         keyword_response = requests.post("http://localhost:11434/api/generate", json={
-            "model": "llama3"
+            "model": "llama3",
             "prompt": keyword_prompt,
             "stream": False
-        }
-                                        )
+        })
+                    
         if keyword_response.status_code != 200:
             return jsonify({"ERROR": "Failed to generate any keywords"}), 500
         keyword = keyword_response.json().get("response", "").strip()
@@ -60,7 +60,7 @@ def query():
             "stream": False
         })
         if answer_response.status_code != 200:
-            return jsonify({"Error": "Failed to create a response or answer"}). 500
+            return jsonify({"Error": "Failed to create a response or answer"}), 500
         answer = answer_response.json().get("response", "").strip()
 
         results.append({
