@@ -40,6 +40,36 @@ def query():
             for page in doc:
                 text += page.get_text()
 
+        limited_text = text[:3000]
+
+        keyword_prompt = f"From the pdf, obtain the main idea:\n\n{limited_text}"
+        keyword_response = requests.post("http://localhost:11434/api/generate", json={
+            "mode": "llama3"
+            "prompt": keyword_prompt,
+            "stream": False
+        })
+        if keyword_response.status_code != 200:
+            return jsonify({"ERROR": "Failed to generate any keywords"}), 500
+        keyword = keyword_response.json().get("response", "").strip()
+
+        question_prompt = f"From the document, answer the question:\n\n{limited_text}\n\nQuestion: {question}"
+        answer_response = requests.post("http://localhost:11434/api/generate", json = {
+            "model": "llama3",
+            "prompt": question_prompt,
+            "stream": False
+        })
+        if answer_response.status_code != 200:
+            return jsonify({"Error": "Failed to create a response or answer"}). 500
+        answer = answer_response.json().get("response", "").strip()
+
+        results.append({
+            "file": os.path.basename(pdf_file),
+            "keyword": keyword,
+            "answer": answer
+        })
+            
+        
+
         results.append({
             "file": os.path.basename(pdf_file),
             "text_excerpt": text[:500]
