@@ -44,10 +44,11 @@ def query():
 
         keyword_prompt = f"From the pdf, obtain the main idea:\n\n{limited_text}"
         keyword_response = requests.post("http://localhost:11434/api/generate", json={
-            "mode": "llama3"
+            "model": "llama3"
             "prompt": keyword_prompt,
             "stream": False
-        })
+        }
+                                        )
         if keyword_response.status_code != 200:
             return jsonify({"ERROR": "Failed to generate any keywords"}), 500
         keyword = keyword_response.json().get("response", "").strip()
