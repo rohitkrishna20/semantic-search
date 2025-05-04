@@ -38,7 +38,7 @@ def query():
         text = ""
         with fitz.open(pdf_file) as doc:
             for page in doc:
-                text += page.get.text()
+                text += page.get_text()
 
         results.append({
             "file": os.path.basename(pdf_file),
