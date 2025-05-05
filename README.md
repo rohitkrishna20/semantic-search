@@ -26,6 +26,7 @@ The app uses ollama (LLaMA) 3 to process content on pdf and answer questions tha
   
 
 ## Setup in Terminal and Postman
+- OPEN A NEW TERMINAL DIFFERENT FROM THE OLLAMA TERMINAL
 1. Clone the repository:
    - 'git clone https://github.com/YOUR_USERNAME/semantic-search.git'
    - 'cd semantic-search'
