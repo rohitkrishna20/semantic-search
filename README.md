@@ -3,7 +3,8 @@
 ## Summary
 This app allows the user to upload a pdf and ask a question about the contents within that file. Postman will extract that text and return a response using semantic search.
 
-## Requirements
+## Requirements 
+_Install dependencies section will take care of these_
 - Python 3.x
 - Flask
 - PyMuPDF (fitz)
@@ -34,12 +35,11 @@ The app uses ollama (LLaMA) 3 to process content on pdf and answer questions tha
    - ```python app.py``` -- the server will start on http://127.0.0.1:5000
    - Use Postman to send a POST request to: http://127.0.0.1:5000/query
    - Set the **body** to ```form-data``` and include:
-     - **key** ```file``` (Type: File) - upload your pdf
-     - **key** ```question``` (Type: Text) - enter your question.
-    ** NOTE: **
+     - **key** ```file``` (```Type: File```) - upload your pdf
        - Upload a pdf ```file``` is optional
        - if upload a ```file```, the search will run only on that specific file
        - without uploading a file, the app will search across all the pdf files within the ```uploads/``` folder
        - if no pdf files are available and no file is then uploaded, an error will be shown.
+     - **key** ```question``` (Type: Text) - enter your question.
 4. Send the Request:
    - Click the send button on Postman 
