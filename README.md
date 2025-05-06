@@ -12,13 +12,11 @@ This app allows the user to upload a pdf and ask a question about the contents w
 The app uses ollama (LLaMA) 3 to process content on pdf and answer questions that the user gives. To set it up:
 1. ** Install ollama: **
    - visit https://ollama.com and download ollama for the user specific interface (Mac, Windows, etc)
-
 2. ** Extract the LLaMA 3 model: **
    - open terminal and run:
-     "ollama pull llama3
-3. "" Start the Ollama server: **
-   - run:
-   - "ollama serve"
+     ```ollama pull llama3```
+3. ** Start the Ollama server: **
+   - run: ```ollama serve``` or ```ollama run llama3```
      - this will start the the API server at 'http://localhost:11434'.
 
 - Make sure the ollama server is running before starting the flask app.
@@ -28,20 +26,20 @@ The app uses ollama (LLaMA) 3 to process content on pdf and answer questions tha
 ## Setup in Terminal and Postman
 - OPEN A NEW TERMINAL DIFFERENT FROM THE OLLAMA TERMINAL
 1. Clone the repository:
-   - 'git clone https://github.com/YOUR_USERNAME/semantic-search.git'
-   - 'cd semantic-search'
+   - ```git clone https://github.com/YOUR_USERNAME/semantic-search.git```
+   - ```cd semantic-search```
 2. Install dependencies:
-   - 'pip install -r requirements.txt'
+   - ```pip install -r requirements.txt```
 3. Run the app:
-   - 'python app.py' -- the server will start on http://127.0.0.1:5000
+   - ```python app.py``` -- the server will start on http://127.0.0.1:5000
    - Use Postman to send a POST request to: http://127.0.0.1:5000/query
-   - Set the **body** to 'form-data' and include:
-     - **key** 'file' (Type: File) - upload your pdf
-     - **key** 'question' (Type: Text) - enter your question.
+   - Set the **body** to ```form-data``` and include:
+     - **key** ```file``` (Type: File) - upload your pdf
+     - **key** ```question``` (Type: Text) - enter your question.
     ** NOTE: **
-       - Upload a pdf 'file' is optional
-       - if upload a 'file', the search will run only on that specific file
-       - without uploading a file, the app will search across all the pdf files within the 'uploads/' folder
+       - Upload a pdf ```file``` is optional
+       - if upload a ```file```, the search will run only on that specific file
+       - without uploading a file, the app will search across all the pdf files within the ```uploads/``` folder
        - if no pdf files are available and no file is then uploaded, an error will be shown.
 4. Send the Request:
    - Click the send button on Postman 
