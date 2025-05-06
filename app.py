@@ -25,7 +25,7 @@ def query():
         file.save(filepath)
         files_to_search.append(filepath)
     else:
-        for filename in os.listir(UPLOAD_FOLDER):
+        for filename in os.listdir(UPLOAD_FOLDER):
             if filename.endswith('.pdf'):
                 files_to_search.append(os.path.join(UPLOAD_FOLDER, filename))
 
