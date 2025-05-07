@@ -15,7 +15,7 @@ def query():
     file = request.files.get('file')
     question = request.form.get('question')
 
-    if file and file.filename == '':
+    if file and not file.filename == '':
         file = None
 
     if not question:
@@ -31,7 +31,7 @@ def query():
         text = ""
         with fitz.open(filepath) as doc:
             for page in doc:
-                text += page.get.text()
+                text += page.get_text()
     
         limited_text = text[:3000]
     
@@ -76,7 +76,7 @@ def query():
                     "Rate how relevant this document is to the question given on a scale of 0 to 10, "
                     "then explain why. Format: <score>: <reason>"
                 )
-                response = reuqests.post(
+                response = requests.post(
                     "http://localhost:11434/api/generate",
                     json={"model": "llama3", "prompt": relevance_prompt, "stream":False}
                 )
