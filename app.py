@@ -15,7 +15,7 @@ def query():
     file = request.files.get('file')
     question = request.form.get('question')
 
-    if file and not file.filename == '':
+    if file and file.filename == '':
         file = None
 
     if not question:
@@ -27,84 +27,66 @@ def query():
     if file and file.filename:
         filepath = os.path.join(UPLOAD_FOLDER, file.filename)
         file.save(filepath)
-    
-        text = ""
-        with fitz.open(filepath) as doc:
-            for page in doc:
-                text += page.get_text()
-    
-        limited_text = text[:3000]
-    
-        # Keyboard Prompt
-        keyword_prompt = f"From the document, extract the main idea of the most important keyword: \n\n{limited_text}"
-        keyword_response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "llama3", "prompt": keyword_prompt, "stream": False}
-        )
-        keyword = keyword_response.json().get("response", "").strip() if keyword_response.status_code == 200 else "None"
-    
-        # Answer prompt
-        question_prompt = f"Answer the questions based on the pdf provided:\n\n{limited_text}\n\nQuestion: {question}"
-        answer_response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "llama3", "prompt": question_prompt, "stream": False}
-        )
-        answer = answer_response.json().get("response", "").strip() if answer_response.status_code == 200 else "None"
-
-        return jsonify({
-            "file": file.filename,
-            "keyword": keyword,
-            "answer": answer
-        })
-
-    # Case 2
+        files_to_search = [filepath]
     else:
-        ranked_results = []
-        for filename in os.listdir(UPLOAD_FOLDER):
-            if not filename.endswith(".pdf"):
-                continue
-            filepath = os.path.join(UPLOAD_FOLDER, filename) 
-            try:
-                text = ""
-                with fitz.open(filepath) as doc:
-                    for page in doc:
-                        text += page.get_text()
-                limited_text = text[:3000]
-                relevance_prompt = (
+        # Case 2
+        files_to_search = [
+            os.path.join(UPLOAD_FOLDER, f)
+            for f in os.listdir(UPLOAD_FOLDER)
+            if f.endswith('.pdf')
+        ]
+        if not files_to_search:
+            return jsonify({"Error": "There are no PDFs in the uploads folder."}), 400
+
+    ranked_results = []
+
+    for path in files_to_search:
+        filename = os.path.basename(path)
+        try:
+            text = ""
+            with fitz.open(path) as doc:
+                for page in doc:
+                    text += page.get_text()
+            limited_text = text[:3000]
+            relevance_prompt = (
                     f"Given the document content: \n\n{limited_text}\n\n"
                     f"the user question: \n\n{question}\n\n"
                     "Rate how relevant this document is to the question given on a scale of 0 to 10, "
-                    "then explain why. Format: <score>: <reason>"
+                    "then answer the question based on this document.\n"
+                    "Format: <score>: <answer>"
                 )
-                response = requests.post(
-                    "http://localhost:11434/api/generate",
-                    json={"model": "llama3", "prompt": relevance_prompt, "stream":False}
-                )
-                if response.status_code != 200:
-                    continue
-                raw = response.json().get("response", "")
-                score_str = raw.split(":", 1)[0]
-                try:
-                    score = float(score_str.strip())
-                except:
-                    score = 0.0
-                ranked_results.append({
-                    "file": filename,
-                    "score": score,
-                    "explanation": raw.strip()
-                })
-            except Exception as e:
+            response = requests.post(
+                "http://localhost:11434/api/generate",
+                json={"model": "llama3", "prompt": relevance_prompt, "stream": False}
+            )
+            if response.status_code != 200:
+                raise Exception("LLM Error")
+            raw = response.json().get("response", "")
+            parts = raw.split(":", 1)
+            try:
+                score = float(parts[0].strip())
+            except:
+                score = 0.0
+            answer = parts[1].strip() if len(parts) > 1 else "No answer is given."
+            ranked_results.append({
+                "file": filename,
+                "score": score,
+                "answer": answer
+            })
+        except Exception as e:
                 ranked_results.append({
                     "file": filename,
                     "score": 0,
-                    "explanation": f" There was an error processing the file: {e}"
+                    "explanation": f" There was an error processing the file: {str(e)}"
                 })
-        ranked_results.sort(key=lambda x: x["score"], reverse=True)
-        return jsonify({
-            "question": question,
-            "ranked_results": ranked_results
-        })
-    
+
+    ranked_results.sort(key=lambda x: x["score"], reverse=True)
+
+    return jsonify({
+    "question": question,
+    "ranked_results": ranked_results
+    })
+
 
 if __name__ == '__main__':
     app.run(debug=True)
