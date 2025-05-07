@@ -15,70 +15,96 @@ def query():
     file = request.files.get('file')
     question = request.form.get('question')
 
+    if file and file.filename == '':
+        file = None
+
     if not question:
         return jsonify({"Error": "Question must be given"}), 400
 
-    files_to_search = []
-
-    if file:
-        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-        file.save(filepath)
-        files_to_search.append(filepath)
-    else:
-        for filename in os.listdir(UPLOAD_FOLDER):
-            if filename.endswith('.pdf'):
-                files_to_search.append(os.path.join(UPLOAD_FOLDER, filename))
-
-    if not files_to_search:
-        return jsonify({"ERROR": "There are no pdf files identified."}), 400
-
     results = []
 
-    for pdf_file in files_to_search:
+    # Case 1
+    if file and file.filename:
+        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(filepath)
+    
         text = ""
-        with fitz.open(pdf_file) as doc:
+        with fitz.open(filepath) as doc:
             for page in doc:
-                text += page.get_text()
-
+                text += page.get.text()
+    
         limited_text = text[:3000]
+    
+        # Keyboard Prompt
+        keyword_prompt = f"From the document, extract the main idea of the most important keyword: \n\n{limited_text}"
+        keyword_response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "llama3", "prompt": keyword_prompt, "stream": False}
+        )
+        keyword = keyword_response.json().get("response", "").strip() if keyword_response.status_code == 200 else "None"
+    
+        # Answer prompt
+        question_prompt = f"Answer the questions based on the pdf provided:\n\n{limited_text}\n\nQuestion: {question}"
+        answer_response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "llama3", "prompt": question_prompt, "stream": False}
+        )
+        answer = answer_response.json().get("response", "").strip() if answer_response.status_code == 200 else "None"
 
-        keyword_prompt = f"From the pdf, obtain the main idea:\n\n{limited_text}"
-        keyword_response = requests.post("http://localhost:11434/api/generate", json={
-            "model": "llama3",
-            "prompt": keyword_prompt,
-            "stream": False
-        })
-                    
-        if keyword_response.status_code != 200:
-            return jsonify({"ERROR": "Failed to generate any keywords"}), 500
-        keyword = keyword_response.json().get("response", "").strip()
-
-        question_prompt = f"From the document, answer the question:\n\n{limited_text}\n\nQuestion: {question}"
-        answer_response = requests.post("http://localhost:11434/api/generate", json = {
-            "model": "llama3",
-            "prompt": question_prompt,
-            "stream": False
-        })
-        if answer_response.status_code != 200:
-            return jsonify({"Error": "Failed to create a response or answer"}), 500
-        answer = answer_response.json().get("response", "").strip()
-
-        results.append({
-            "file": os.path.basename(pdf_file),
+        return jsonify({
+            "file": file.filename,
             "keyword": keyword,
             "answer": answer
         })
-            
-        
 
-        results.append({
-            "file": os.path.basename(pdf_file),
-            "text_excerpt": text[:500]
+    # Case 2
+    else:
+        ranked_results = []
+        for filename in os.listdir(UPLOAD_FOLDER):
+            if not filename.endswith(".pdf"):
+                continue
+            filepath = os.path.join(UPLOAD_FOLDER, filename) 
+            try:
+                text = ""
+                with fitz.open(filepath) as doc:
+                    for page in doc:
+                        text += page.get.text()
+                limited_text = text[:3000]
+                relevance_prompt = (
+                    f"Given the document content: \n\n{limited_text}\n\n"
+                    f"the user question: \n\n{question}\n\n"
+                    "Rate how relevant this document is to the question given on a scale of 0 to 10, "
+                    "then explain why. Format: <score>: <reason>"
+                )
+                response = reuqests.post(
+                    "http://localhost:11434/api/generate",
+                    json={"model": "llama3", "prompt": relevance_prompt, "stream":False}
+                )
+                if response.status_code != 200:
+                    continue
+                raw = response.json().get("response", "")
+                score_str = raw.split(":", 1)[0]
+                try:
+                    score = float(score_str.strip())
+                except:
+                    score = 0.0
+                ranked_results.append({
+                    "file": filename,
+                    "score": score,
+                    "explanation": raw.strip()
+                })
+            except Exception as e:
+                ranked_results.append({
+                    "file": filename,
+                    "score": 0,
+                    "explanation": f" There was an error processing the file: {e}"
+                })
+        ranked_results.sort(key=lambda x: x["score"], reverse=True)
+        return jsonify({
+            "question": question,
+            "ranked_results": ranked_results
         })
-    return jsonify({
-        "question": question,
-        "results": results
-    })
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
