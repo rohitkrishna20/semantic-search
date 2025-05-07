@@ -68,7 +68,7 @@ def query():
                 text = ""
                 with fitz.open(filepath) as doc:
                     for page in doc:
-                        text += page.get.text()
+                        text += page.get_text()
                 limited_text = text[:3000]
                 relevance_prompt = (
                     f"Given the document content: \n\n{limited_text}\n\n"
