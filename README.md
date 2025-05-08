@@ -43,3 +43,6 @@ The app uses ollama (LLaMA) 3 to process content on pdf and answer questions tha
      - **key** ```question``` (Type: Text) - enter your question.
 4. Send the Request:
    - Click the send button on Postman 
+5. To run in production mode
+   - ```pip install gunicorn``` to install a production-ready WSGI server like Gunicorn
+   - ```/Users/dyadmin/Library/Python/3.9/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 app:app``` to start the app
