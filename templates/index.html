@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Semantic Data</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .file-link {margin: 10px 0; display: block; }
+    .summary-box { margin-top: 30px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h2>Hover and Summarize PDF Files</h2>
+
+  {% for file in files %}
+    <a class = "file-link" href="/?file={{ file }}">{{ file}}</a>
+  {% endfor %}
+
+  {% if summary %}
+    <div class="summary-box">
+      <strong>Summary for {{ selected }}:</strong>
+      <p>{{ summary }}</p>
+    </div>
+</body>
+</html>
