@@ -36,6 +36,7 @@ def home():
                 "Rate how relevant this document is to the question on a scale of 0 to 10, "
                 "then answer the question based on this document. \n"
                 "Format: <score>: <answer>"
+                "For example: 8: The document discusses climate change in detail."
                 )
                 response = requests.post(
                     "http://localhost:11434/api/generate",
