@@ -31,13 +31,15 @@ def home():
                         text += page.get_text()
                 limited_text = text[:3000]
                 prompt = (
+            
                 f"Given the document information:\n\n{limited_text}\n\n"
                 f"the user question:\n\n{question}\n\n"
                 "Rate how relevant this document is to the question on a scale of 0 to 10, "
                 "then answer the question based on this document. \n"
-                "Format: <score>: <answer>"
+                "Format: <score>: <answer>\n"
                 "For example: 8: The document discusses climate change in detail."
-                )
+)
+
                 response = requests.post(
                     "http://localhost:11434/api/generate",
                     json={"model": "llama3", "prompt": prompt, "stream": False}
