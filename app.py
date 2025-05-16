@@ -14,6 +14,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def home():
     answer = None
     question = None
+    score = None
     if request.method == 'POST':
         question = request.form.get('question')
         ranked_results = []
@@ -56,12 +57,17 @@ def home():
                 ranked_results.append({
                     "file": filename,
                     "score": 0,
-                    "answer": f" Error processing {filename}: {str(e)}"
+                    "answer": f"Error processing {filename}: {str(e)}"
                 })
         ranked_results.sort(key=lambda x: x["score"], reverse=True)
-        best_result = ranked_results[0] if ranked_results else {"answer": "No relevant result found.", "score": 0.0}
-        answer = best_result["answer"]
-        score = best_result["score"]
+
+        if ranked_results:
+            best_result = ranked_results[0]
+            answer = best_result["answer"]
+            score = best_result["score"]
+        else:
+            answer = "No relevant result found."
+            score = 0.0
     return render_template('index.html', question = question, score= score, answer=answer)
 
 if __name__ == '__main__':
