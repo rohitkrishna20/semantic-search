@@ -6,28 +6,40 @@
     body { font-family: Arial; margin: 40px; }
     form { margin-bottom: 30px; }
     .response-box {
-      background-color: #f0f0f0;
-      padding: 20px;
-      border-radius: 5px;
+        background: #f0f0f0;
+        padding: 20px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
     }
-    </style>
+    .file-list {
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
-  <h2> Ask a question about the PDFs </h2>
-  <form method = "POST">
-    <input type="text" name = "question" placeholder="Type your question.." size ="50" required>
+  <h1> Ask a question about the PDFs </h1>
+
+  <div class = "file-list">
+    <h3>Available Files:</h3>
+    <u1>
+      {% for file in files %}
+      <li>{{ file }}<li>
+      {% endfor %}
+    </u1>
+  </div>
+
+  <form method="POST">
+    <input type="text" name="question" placeholder="Type your question.." size="60" required>
     <button type="submit">Submit</button>
   </form>
-  {% if question %}
-    <p><strong>You asked:</strong> {{ question }} </p>
-  {% endif %}
 
-  {% if answer %}
-  <div class = "response-box">
-    <strong>Most Relevant Answer:</strong>
+  {% if answer &}
+  <div class="response-box">
+    <strong>You asked:</strong> {{ question }}<br><br>
+    <h3>Most Relevant File: {{ best_file }}</h3>
+    <strong> Relevance Score:</strong> {{ score }}<br><br>
     <p>{{ answer }}</p>
-    <p><em>Relevance Score: {{ score }}</em></p>
   </div>
-  {% endif %}
+  {& endif %}
 </body>
 </html>
