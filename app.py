@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, jsonify, render_template
 import fitz
 import os
 import requests
@@ -69,7 +69,48 @@ def home():
             answer = "No relevant result found."
             score = 0.0
     return render_template('index.html', question = question, score= score, answer=answer)
-
+@app.route("/query", methods = ["POST"])
+def query_api():
+    file = request.files.get('file')
+    question = request.form.get('question')
+    if not file or not file.filename.endswith('.pdf'):
+        return jsonify({"error": "Only PDF files are supported"}), 400
+    if not question:
+        return jsonify({"error": "Question is necessary"})
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(filepath)
+    text = ""
+    with fitz.open(filepath) as doc:
+        for page in doc:
+            text += page.get_text()
+    limited_text = text[:3000]
+    prompt = (
+                f"Given the document information:\n\n{limited_text}\n\n"
+                f"the user question:\n\n{question}\n\n"
+                "Rate how relevant this document is to the question on a scale of 0 to 10, "
+                "then answer the question based on this document. \n"
+                "Format: <score>: <answer>"
+                )
+    response = requests.post(
+                    "http://localhost:11434/api/generate",
+                    json={"model": "llama3", "prompt": prompt, "stream": False}
+                )
+    if response.status_code != 200:
+        return jsonify({"error": "LLM failed"}), 500
+    raw = response.json().get("response", "")
+    parts = raw.split(":", 1)
+    try:
+        score = float(parts[0].strip())
+    except:
+         score = 0.0
+    answer = parts[1].strip() if len(parts) > 1 else "No answer generated"
+    return jsonify({
+        "question": question,
+        "file": file.filename,
+        "score": score,
+        "answer": answer
+    })
+         
 if __name__ == '__main__':
     app.run(debug=True)
                 
