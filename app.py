@@ -59,9 +59,10 @@ def home():
                     "answer": f" Error processing {filename}: {str(e)}"
                 })
         ranked_results.sort(key=lambda x: x["score"], reverse=True)
-        if ranked_results:
-            answer = ranked_results[0]['answer']
-    return render_template('index.html', question = question, answer=answer)
+        best_result = ranked_results[0] if ranked_results else {"answer": "No relevant result found.", "score": 0.0}
+        answer = best_result["answer"]
+        score = best_result["score"]
+    return render_template('index.html', question = question, score= score, answer=answer)
 
 if __name__ == '__main__':
     app.run(debug=True)
