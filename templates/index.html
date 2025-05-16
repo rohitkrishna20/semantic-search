@@ -21,11 +21,11 @@
 
   <div class = "file-list">
     <h3>Available Files:</h3>
-    <u1>
+    <ul>
       {% for file in files %}
-      <li>{{ file }}<li>
+      <li>{{ file }}</li>
       {% endfor %}
-    </u1>
+    </ul>
   </div>
 
   <form method="POST">
@@ -33,13 +33,13 @@
     <button type="submit">Submit</button>
   </form>
 
-  {% if answer &}
+  {% if answer %}
   <div class="response-box">
     <strong>You asked:</strong> {{ question }}<br><br>
     <h3>Most Relevant File: {{ best_file }}</h3>
     <strong> Relevance Score:</strong> {{ score }}<br><br>
     <p>{{ answer }}</p>
   </div>
-  {& endif %}
+  {% endif %}
 </body>
 </html>
