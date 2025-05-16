@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Semantic Data</title>
+  <title>Ask a Question</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    .file-link {margin: 10px 0; display: block; }
-    .summary-box { margin-top: 30px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
-  </style>
+    body { font-family: Arial; margin: 40px; }
+    form { margin-bottom: 30px; }
+    .response-box {
+      background-color: #f0f0f0;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    </style>
 </head>
 <body>
-  <h2>Hover and Summarize PDF Files</h2>
+  <h2> Ask a question about the PDFs </h2>
+  <form method = "POST">
+    <input type="text" name = "question" placeholder="Type your question.." size ="50" required>
+    <button type="submit">Submit</button>
+  </form>
 
-  {% for file in files %}
-    <a class = "file-link" href="/?file={{ file }}">{{ file}}</a>
-  {% endfor %}
-
-  {% if summary %}
-    <div class="summary-box">
-      <strong>Summary for {{ selected }}:</strong>
-      <p>{{ summary }}</p>
-    </div>
+  {% if answer %}
+  <div class = "response-box">
+    <strong>Most Relevant Answer:</strong>
+    <p>{{ answer }}</p>
+  </div>
+  {% endif %}
 </body>
 </html>
