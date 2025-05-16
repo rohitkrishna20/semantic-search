@@ -15,10 +15,12 @@ def home():
     answer = None
     question = None
     score = None
+    best_file = None
+    uploaded_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('.pdf')]
     if request.method == 'POST':
         question = request.form.get('question')
         ranked_results = []
-        for filename in os.listdir(UPLOAD_FOLDER):
+        for filename in uploaded_files:
             if not filename.endswith('.pdf'):
                 continue
             filepath = os.path.join(UPLOAD_FOLDER, filename)
@@ -44,13 +46,13 @@ def home():
                 raw = response.json().get("response", "")
                 parts = raw.split(":", 1)
                 try:
-                    score = float(parts[0].strip())
+                    score_val = float(parts[0].strip())
                 except:
-                    score = 0.0
+                    score_val = 0.0
                 answer_text = parts[1].strip() if len(parts) > 1 else "No answer given."
                 ranked_results.append({
                     "file": filename,
-                    "score": score,
+                    "score": score_val,
                     "answer": answer_text
                 })
             except Exception as e:
@@ -65,10 +67,11 @@ def home():
             best_result = ranked_results[0]
             answer = best_result["answer"]
             score = best_result["score"]
+            best_file = best_result["file"]
         else:
             answer = "No relevant result found."
             score = 0.0
-    return render_template('index.html', question = question, score= score, answer=answer)
+    return render_template('index.html', files = uploaded_files, question = question, score= score, answer=answer, best_file=best_file)
 @app.route("/query", methods = ["POST"])
 def query_api():
     file = request.files.get('file')
