@@ -18,11 +18,15 @@
     <input type="text" name = "question" placeholder="Type your question.." size ="50" required>
     <button type="submit">Submit</button>
   </form>
+  {% if question &}
+    <p><strong>You asked:</strong> {{ question }} </p>
+  {% endif %}
 
   {% if answer %}
   <div class = "response-box">
     <strong>Most Relevant Answer:</strong>
     <p>{{ answer }}</p>
+    <p><em>Relevance Score: {{ score }}</em></p>
   </div>
   {% endif %}
 </body>
