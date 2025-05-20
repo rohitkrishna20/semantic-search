@@ -94,8 +94,9 @@ def query_api():
                 f"Given the document information:\n\n{limited_text}\n\n"
                 f"the user question:\n\n{question}\n\n"
                 "Rate how relevant this document is to the question on a scale of 0 to 10, "
-                "then answer the question based on this document. \n"
-                "Format: <score>: <answer>"
+                "Find and return the exact answer from the document, using the same wording as in the text. "
+                "Do not summarize or rephrase. If an exact answer is not found, return: 'No exact answer found. '\n"
+                "Format: <score>: <exact answer>"
                 )
     response = requests.post(
                     "http://localhost:11434/api/generate",
