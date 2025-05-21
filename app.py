@@ -34,6 +34,7 @@ def home():
                 f"Given the document information:\n\n{limited_text}\n\n"
                 f"the user question:\n\n{question}\n\n"
                 f"Rate how relevant this document is to the question on a scale of 0 to 10, "
+                f"Search only the above document for the ansewr.\n"
                 f"If the answer exists in the document, extract it word-for-word without adding or rephrasing anything.\n "
                 f"Only copy the exact sentence or paragraph from the document.\n"
                 f"If no answer exists, respond with 'No exact match found.'\n\n"
