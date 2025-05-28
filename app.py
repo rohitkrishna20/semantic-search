@@ -30,13 +30,14 @@ def home():
                     for page in doc:
                         text += page.get_text()
                 limited_text = text[:3000]
+                delimiter = '*'
                 prompt = (
                 f"Given the document information:\n\n{limited_text}\n\n"
                 f"the user question:\n\n{question}\n\n"
                 f"Rate how relevant this document is to the question on a scale of 0 to 10, "
                 f"Search only the above document for the ansewr.\n"
                 f"If the answer exists in the document, return it using clean, readable formatting-no raw HTML or tags.\n "
-                f"If it is a list of items (like types or features), present them as bullet points (e.g., * Item1, * Item2).\n"
+                f"If it is a list of items (like types or features), use '{delimiter}' as the separator, present them as bullet points (e.g., * Item1, * Item2).\n"
                 f"Do not paraphrase or summarize-use the document's exact language.\n"
                 f"Only copy the exact sentence or paragraph from the document.\n"
                 f"If no answer exists, respond with 'No exact match found.'\n\n"
@@ -82,6 +83,7 @@ def home():
 def query_api():
     file = request.files.get('file')
     question = request.form.get('question')
+    delimiter = request.form.get("delimiter", "*")
     if not file or not file.filename.endswith('.pdf'):
         return jsonify({"error": "Only PDF files are supported"}), 400
     if not question:
@@ -97,7 +99,7 @@ def query_api():
                 f"Given the document information:\n\n{limited_text}\n\n"
                 f"the user question:\n\n{question}\n\n"
                 f"Rate how relevant this document is to the question on a scale of 0 to 10, "
-                f"Search only the above document for the ansewr.\n"
+                f"Search only the above document for the answer.\n"
                 f"If the answer exists in the document, return it using clean, readable formatting-no raw HTML or tags.\n "
                 f"If it is a list of items (like types or features), present them as bullet points (e.g., * Item1, * Item2).\n"
                 f"Do not paraphrase or summarize-use the document's exact language.\n"
