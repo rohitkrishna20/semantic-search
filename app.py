@@ -12,7 +12,8 @@ UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @lru_cache(maxsize=10)
-def get_cached_text(filename):
+def get_cached_text_cached(filename_with_mtime):
+    filename, mtime = filename_with_mtime
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     with fitz.open(filepath) as doc:
         return "".join(page.get_text() for page in doc)
@@ -32,23 +33,21 @@ def home():
                 continue
             filepath = os.path.join(UPLOAD_FOLDER, filename)
             try:
-                text = ""
-                with fitz.open(filepath) as doc:
-                    for page in doc:
-                        text += page.get_text()
+                mtime = os.path.getmtime(filepath)
+                text = get_cached_text_cached((filename, mtime))
                 limited_text = text[:3000]
                 delimiter = '*'
                 prompt = (
-                f"Given the document information:\n\n{limited_text}\n\n"
-                f"the user question:\n\n{question}\n\n"
-                f"Rate how relevant this document is to the question on a scale of 0 to 10, "
-                f"Search only the above document for the ansewr.\n"
-                f"If the answer exists in the document, return it using clean, readable formatting-no raw HTML or tags.\n "
-                f"If it is a list of items (like types or features), use '{delimiter}' as the separator, present them as bullet points (e.g., * Item1, * Item2).\n"
-                f"Do not paraphrase or summarize-use the document's exact language.\n"
-                f"Only copy the exact sentence or paragraph from the document.\n"
-                f"If no answer exists, respond with 'No exact match found.'\n\n"
-                f"Format: <score>: <exact answer>"
+                    f"Given the document information:\n\n{limited_text}\n\n"
+                    f"the user question:\n\n{question}\n\n"
+                    f"Rate how relevant this document is to the question on a scale of 0 to 10, "
+                    f"Search only the above document for the ansewr.\n"
+                    f"If the answer exists in the document, return it using clean, readable formatting-no raw HTML or tags.\n "
+                    f"If it is a list of items (like types or features), use '{delimiter}' as the separator, present them as bullet points (e.g., * Item1, * Item2).\n"
+                    f"Do not paraphrase or summarize-use the document's exact language.\n"
+                    f"Only copy the exact sentence or paragraph from the document.\n"
+                    f"If no answer exists, respond with 'No exact match found.'\n\n"
+                    f"Format: <score>: <exact answer>"
                 )
 
                 response = requests.post(
@@ -97,10 +96,9 @@ def query_api():
         return jsonify({"error": "Question is necessary"})
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
-    text = ""
-    with fitz.open(filepath) as doc:
-        for page in doc:
-            text += page.get_text()
+    mtime = os.path.getmtime(filepath)
+    text = get_cached_text_cached((file.filename, mtime))
+
     limited_text = text[:3000]
     prompt = (
                 f"Given the document information:\n\n{limited_text}\n\n"
