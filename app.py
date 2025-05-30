@@ -1,3 +1,4 @@
+from functools import lru_cache
 from flask import Flask, request, jsonify, render_template
 import fitz
 import os
@@ -9,6 +10,12 @@ app = Flask(__name__)
 # Set the folder for uploading files
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@lru_cache(maxsize=10)
+def get_cached_text(filename):
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    with fitz.open(filepath) as doc:
+        return "".join(page.get_text() for page in doc)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
