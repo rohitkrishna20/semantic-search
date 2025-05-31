@@ -45,7 +45,7 @@ def home():
                     f"If the answer exists in the document, return it using clean, readable formatting — no raw HTML or tags.\n"
                     f"If it is a list of items (like types or features), use '{delimiter}' as the bullet point marker (e.g., {delimiter} Item1, {delimiter} Item2).\n"
                     f"Do not paraphrase or summarize — use the document’s exact language.\n"
-                    f"Only copy the exact sentence or paragraph from the document.\n"
+f"Only return the exact sentence or paragraph copied word-for-word from the document. Do NOT explain, paraphrase, summarize, or add any commentary. Your response must be only the original sentence or paragraph.\n"
                     f"If no answer exists, respond with 'No exact match found.'\n"
                     f"Format: <score>: <exact answer>"
                 )
@@ -119,7 +119,7 @@ def query_api():
         f"If the answer exists in the document, return it using clean, readable formatting — no raw HTML or tags.\n"
         f"If it is a list of items (like types or features), use '{delimiter}' as the bullet point marker (e.g., {delimiter} Item1, {delimiter} Item2).\n"
         f"Do not paraphrase or summarize — use the document’s exact language.\n"
-        f"Only copy the exact sentence or paragraph from the document.\n"
+f"Only return the exact sentence or paragraph copied word-for-word from the document. Do NOT explain, paraphrase, summarize, or add any commentary. Your response must be only the original sentence or paragraph.\n"
         f"If no answer exists, respond with 'No exact match found.'\n"
         f"Format: <score>: <exact answer>"
     )
