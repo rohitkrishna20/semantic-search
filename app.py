@@ -38,16 +38,17 @@ def home():
                 limited_text = text[:3000]
 
                 prompt = (
-                    f"Given the document information:\n\n{limited_text}\n\n"
-                    f"The user question:\n\n{question}\n\n"
-                    f"Rate how relevant this document is to the question on a scale of 0 to 10.\n"
-                    f"Search only the above document for the answer.\n"
-                    f"If the answer exists in the document, return it using clean, readable formatting — no raw HTML or tags.\n"
-                    f"If it is a list of items (like types or features), use '{delimiter}' as the bullet point marker (e.g., {delimiter} Item1, {delimiter} Item2).\n"
-                    f"Do not paraphrase or summarize — use the document’s exact language.\n"
-f"Only return the exact sentence or paragraph copied word-for-word from the document. Do NOT explain, paraphrase, summarize, or add any commentary. Your response must be only the original sentence or paragraph.\n"
-                    f"If no answer exists, respond with 'No exact match found.'\n"
-                    f"Format: <score>: <exact answer>"
+            
+    f"Given the document information:\n\n{limited_text}\n\n"
+    f"The user question:\n\n{question}\n\n"
+    f"Your task:\n"
+    f"- Only search the content above for an exact answer.\n"
+    f"- Do NOT explain your reasoning, do NOT add commentary, and do NOT summarize.\n"
+    f"- If the answer exists, copy the exact sentence or paragraph as-is from the document.\n"
+    f"- If it is a list, use '{delimiter}' as bullet points (e.g., {delimiter} Item1, {delimiter} Item2).\n"
+    f"- If no answer is found, respond with exactly: 'No exact match found.'\n\n"
+    f"Format:\n<score>: <exact answer>"
+
                 )
 
                 response = requests.post(
@@ -111,18 +112,17 @@ def query_api():
     text = get_cached_text_cached((file.filename, mtime))
     limited_text = text[:3000]
 
-    prompt = (
-        f"Given the document information:\n\n{limited_text}\n\n"
-        f"The user question:\n\n{question}\n\n"
-        f"Rate how relevant this document is to the question on a scale of 0 to 10.\n"
-        f"Search only the above document for the answer.\n"
-        f"If the answer exists in the document, return it using clean, readable formatting — no raw HTML or tags.\n"
-        f"If it is a list of items (like types or features), use '{delimiter}' as the bullet point marker (e.g., {delimiter} Item1, {delimiter} Item2).\n"
-        f"Do not paraphrase or summarize — use the document’s exact language.\n"
-f"Only return the exact sentence or paragraph copied word-for-word from the document. Do NOT explain, paraphrase, summarize, or add any commentary. Your response must be only the original sentence or paragraph.\n"
-        f"If no answer exists, respond with 'No exact match found.'\n"
-        f"Format: <score>: <exact answer>"
-    )
+prompt = (
+    f"Given the document information:\n\n{limited_text}\n\n"
+    f"The user question:\n\n{question}\n\n"
+    f"Your task:\n"
+    f"- Only search the content above for an exact answer.\n"
+    f"- Do NOT explain your reasoning, do NOT add commentary, and do NOT summarize.\n"
+    f"- If the answer exists, copy the exact sentence or paragraph as-is from the document.\n"
+    f"- If it is a list, use '{delimiter}' as bullet points (e.g., {delimiter} Item1, {delimiter} Item2).\n"
+    f"- If no answer is found, respond with exactly: 'No exact match found.'\n\n"
+    f"Format:\n<score>: <exact answer>"
+)
 
     response = requests.post(
         "http://localhost:11434/api/generate",
