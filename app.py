@@ -39,15 +39,15 @@ def home():
 
                 prompt = (
             
-    f"Given the document information:\n\n{limited_text}\n\n"
-    f"The user question:\n\n{question}\n\n"
-    f"Your task:\n"
-    f"- Only search the content above for an exact answer.\n"
-    f"- Do NOT explain your reasoning, do NOT add commentary, and do NOT summarize.\n"
-    f"- If the answer exists, copy the exact sentence or paragraph as-is from the document.\n"
-    f"- If it is a list, use '{delimiter}' as bullet points (e.g., {delimiter} Item1, {delimiter} Item2).\n"
-    f"- If no answer is found, respond with exactly: 'No exact match found.'\n\n"
-    f"Format:\n<score>: <exact answer>"
+                f"Given the document information:\n\n{limited_text}\n\n"
+                f"The user question:\n\n{question}\n\n"
+                f"Your task:\n"
+                f"- Only search the content above for an exact answer.\n"
+                f"- Do NOT explain your reasoning, do NOT add commentary, and do NOT summarize.\n"
+                f"- If the answer exists, copy the exact sentence or paragraph as-is from the document.\n"
+                f"- If it is a list, use '{delimiter}' as bullet points (e.g., {delimiter} Item1, {delimiter} Item2).\n"
+                f"- If no answer is found, respond with exactly: 'No exact match found.'\n\n"
+                f"Format:\n<score>: <exact answer>"
 
                 )
 
