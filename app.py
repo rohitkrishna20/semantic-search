@@ -1,6 +1,6 @@
 from functools import lru_cache
 from flask import Flask, request, jsonify, render_template
-import fitz  # PyMuPDF
+import fitz 
 import os
 import requests
 
@@ -28,7 +28,6 @@ def home():
         delimiter = request.form.get('delimiter', '*')
         ranked_results = []
 
-        # Try to match filename mentioned in question
         filtered_files = uploaded_files
         for file in uploaded_files:
             if file.lower() in question.lower():
