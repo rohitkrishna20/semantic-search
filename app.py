@@ -5,7 +5,6 @@ import os
 import requests
 
 app = Flask(__name__)
-
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -26,10 +25,17 @@ def home():
 
     if request.method == 'POST':
         question = request.form.get('question')
-        delimiter = request.form.get("delimiter", "*")
+        delimiter = request.form.get('delimiter', '*')
         ranked_results = []
 
-        for filename in uploaded_files:
+        # Try to match filename mentioned in question
+        filtered_files = uploaded_files
+        for file in uploaded_files:
+            if file.lower() in question.lower():
+                filtered_files = [file]
+                break
+
+        for filename in filtered_files:
             filepath = os.path.join(UPLOAD_FOLDER, filename)
             try:
                 mtime = os.path.getmtime(filepath)
@@ -37,11 +43,10 @@ def home():
                 limited_text = text[:3000]
 
                 prompt = (
-                    f"Document name: {filename}\n\n"
-                    f"Document content:\n{limited_text}\n\n"
-                    f"The user question:\n{question}\n\n"
-                    f"ONLY use the text from THIS DOCUMENT ({filename}) to answer the question. Do NOT consider any other files.\n"
+                    f"Given the document information:\n\n{limited_text}\n\n"
+                    f"The user question:\n\n{question}\n\n"
                     f"Your task:\n"
+                    f"- Only search the content above for an exact answer.\n"
                     f"- Do NOT explain your reasoning, do NOT add commentary, and do NOT summarize.\n"
                     f"- If the answer exists, copy the exact sentence or paragraph as-is from the document.\n"
                     f"- If it is a list, use '{delimiter}' as bullet points (e.g., {delimiter} Item1, {delimiter} Item2).\n"
@@ -59,7 +64,6 @@ def home():
 
                 raw = response.json().get("response", "")
                 parts = raw.split(":", 1)
-
                 try:
                     score_val = float(parts[0].strip())
                 except:
@@ -92,11 +96,11 @@ def home():
 
     return render_template('index.html', files=uploaded_files, question=question, score=score, answer=answer, best_file=best_file)
 
-@app.route("/query", methods=["POST"])
+@app.route('/query', methods=['POST'])
 def query_api():
     file = request.files.get('file')
     question = request.form.get('question')
-    delimiter = request.form.get("delimiter", "*")
+    delimiter = request.form.get('delimiter', '*')
 
     if not file or not file.filename.endswith('.pdf'):
         return jsonify({"error": "Only PDF files are supported"}), 400
@@ -110,11 +114,10 @@ def query_api():
     limited_text = text[:3000]
 
     prompt = (
-        f"Document name: {file.filename}\n\n"
-        f"Document content:\n{limited_text}\n\n"
-        f"The user question:\n{question}\n\n"
-        f"ONLY use the text from THIS DOCUMENT ({file.filename}) to answer the question. Do NOT consider any other files.\n"
+        f"Given the document information:\n\n{limited_text}\n\n"
+        f"The user question:\n\n{question}\n\n"
         f"Your task:\n"
+        f"- Only search the content above for an exact answer.\n"
         f"- Do NOT explain your reasoning, do NOT add commentary, and do NOT summarize.\n"
         f"- If the answer exists, copy the exact sentence or paragraph as-is from the document.\n"
         f"- If it is a list, use '{delimiter}' as bullet points (e.g., {delimiter} Item1, {delimiter} Item2).\n"
@@ -132,14 +135,12 @@ def query_api():
 
     raw = response.json().get("response", "")
     parts = raw.split(":", 1)
-
     try:
         score = float(parts[0].strip())
     except:
         score = 0.0
 
     answer = parts[1].strip() if len(parts) > 1 else "No answer generated"
-
     return jsonify({
         "question": question,
         "file": file.filename,
