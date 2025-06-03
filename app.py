@@ -45,13 +45,13 @@ def home():
     f"Given the document content below:\n\n{limited_text}\n\n"
     f"The user asks:\n\n{question}\n\n"
     f"Instructions:\n"
-    f"- Search only this document. Do not use any outside knowledge.\n"
-    f"- Do NOT explain anything. Do NOT include notes, reasoning, or score explanation.\n"
-    f"- Only copy the exact matching sentence(s) or bullet list from the document.\n"
-    f"- If it is a list of items, extract them directly and present them as '{delimiter} Item1 {delimiter} Item2 {delimiter} Item3'.\n"
-    f"- Do not include HTML tags.\n"
-    f"- If no answer exists, respond exactly: No exact match found.\n\n"
-    f"Format: <score>: <exact answer>"
+    f"- Only search this document for the answer.\n"
+    f"- Use only clean formatting — no slashes (/), HTML tags, or added symbols.\n"
+    f"- If listing items, use '{delimiter}' before each item and a space after, like this: {delimiter} Item1 {delimiter} Item2 {delimiter} Item3.\n"
+    f"- Do not include any commentary, notes, or reasoning.\n"
+    f"- Copy the exact sentence or phrases from the document.\n"
+    f"- If no answer is found, respond exactly with: 'No exact match found.'\n\n"
+    f"Format:\n<score>: <exact answer>"
 )
 
                 response = requests.post(
@@ -117,13 +117,13 @@ def query_api():
     f"Given the document content below:\n\n{limited_text}\n\n"
     f"The user asks:\n\n{question}\n\n"
     f"Instructions:\n"
-    f"- Search only this document. Do not use any outside knowledge.\n"
-    f"- Do NOT explain anything. Do NOT include notes, reasoning, or score explanation.\n"
-    f"- Only copy the exact matching sentence(s) or bullet list from the document.\n"
-    f"- If it is a list of items, extract them directly and present them as '{delimiter} Item1 {delimiter} Item2 {delimiter} Item3'.\n"
-    f"- Do not include HTML tags.\n"
-    f"- If no answer exists, respond exactly: No exact match found.\n\n"
-    f"Format: <score>: <exact answer>"
+    f"- Only search this document for the answer.\n"
+    f"- Use only clean formatting — no slashes (/), HTML tags, or added symbols.\n"
+    f"- If listing items, use '{delimiter}' before each item and a space after, like this: {delimiter} Item1 {delimiter} Item2 {delimiter} Item3.\n"
+    f"- Do not include any commentary, notes, or reasoning.\n"
+    f"- Copy the exact sentence or phrases from the document.\n"
+    f"- If no answer is found, respond exactly with: 'No exact match found.'\n\n"
+    f"Format:\n<score>: <exact answer>"
 )
 
     response = requests.post(
