@@ -9,7 +9,6 @@ app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Cache parsed text using filename and its last modified time
 @lru_cache(maxsize=10)
 def get_cached_text_cached(filename_with_mtime):
     filename, mtime = filename_with_mtime
