@@ -47,7 +47,8 @@ def home():
                 f"- Do NOT explain your reasoning, do NOT add commentary, and do NOT summarize.\n"
                 f"- If the answer exists, copy the exact sentence or paragraph as-is from the document.\n"
                 f"- If it is a list, use '{delimiter}' as bullet points (e.g., {delimiter} Item1, {delimiter} Item2).\n"
-                f"- If no answer is found, respond with exactly: 'No exact match found.'\n\n"
+                f"- If no relevant sentence or heading is found, respond with exactly: "No exact match found"
+                f"- If the document contains HTML tags like <h1>, <h2>, <h3>, extract their contents as headings."
                 f" Do not add any extra notes to any of the answers as well"
                 f"Format:\n<score>: <exact answer>"
 
@@ -122,7 +123,8 @@ def query_api():
         f"- Do NOT explain your reasoning, do NOT add commentary, and do NOT summarize.\n"
         f"- If the answer exists, copy the exact sentence or paragraph as-is from the document.\n"
         f"- If it is a list, use '{delimiter}' as bullet points (e.g., {delimiter} Item1, {delimiter} Item2).\n"
-        f"- If no answer is found, respond with exactly: 'No exact match found.'\n\n"
+        f"- If no relevant sentence or heading is found, respond with exactly: "No exact match found"
+        f"- If the document contains HTML tags like <h1>, <h2>, <h3>, extract their contents as headings."        
         f" Do not add any extra notes to any of the answers as well"
 
         f"Format:\n<score>: <exact answer>"
