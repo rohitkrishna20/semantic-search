@@ -56,7 +56,7 @@ def home():
 
                 response = requests.post(
                     "http://localhost:11434/api/generate",
-                    json={"model": "llama3", "prompt": prompt, "stream": False}
+                    json={"model": "llama3:3.2", "prompt": prompt, "stream": False}
                 )
 
                 if response.status_code != 200:
@@ -128,7 +128,7 @@ def query_api():
 
     response = requests.post(
         "http://localhost:11434/api/generate",
-        json={"model": "llama3", "prompt": prompt, "stream": False}
+        json={"model": "llama3:3.2", "prompt": prompt, "stream": False}
     )
 
     if response.status_code != 200:
