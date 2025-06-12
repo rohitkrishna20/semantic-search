@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, render_template
 import fitz  # PyMuPDF
 import os
 import requests
-import re
+import json
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -18,27 +18,49 @@ def get_cached_text_cached(filename_with_mtime):
 
 def generate_prompt(text, question, delimiter):
     return (
-        f"You are a strict document answering assistant.\n"
-        f"--- DOCUMENT START ---\n{text}\n--- DOCUMENT END ---\n\n"
-        f"User Question:\n{question}\n\n"
-        f"Rules:\n"
-        f"- Only use the document content to answer.\n"
-        f"- Do not explain, paraphrase, or summarize.\n"
-        f"- If the answer exists, copy the exact sentence or paragraph as-is.\n"
-        f"- If it's a list, use '{delimiter}' before each bullet (e.g., {delimiter} Item1).\n"
-        f"- If no match is found, respond exactly with: No exact match found.\n\n"
-        f"Output Format:\n<score (0 to 10)>: <exact answer>"
+        f"You are a document reader assistant.\n"
+        f"Document content:\n\n{text}\n\n"
+        f"Question:\n{question}\n\n"
+        f"Instructions:\n"
+        f"- ONLY answer using the document content above.\n"
+        f"- Do NOT add explanations, do NOT paraphrase, and do NOT say anything that isn't quoted directly from the document.\n"
+        f"- If the answer is a list, use '{delimiter}' to start each bullet (e.g., {delimiter} Item1, {delimiter} Item2).\n"
+        f"- If the answer does not exist in the document, respond with exactly: No exact match found.\n"
+        f"- DO NOT generate anything else.\n"
+        f"Return a JSON with 'score' and 'answer'."
     )
 
-def parse_llm_response(raw):
-    raw = raw.strip()
-    match = re.match(r"^\s*(\d+(?:\.\d+)?)[\s:]+(.*)", raw, re.DOTALL)
-    if match:
-        score = float(match.group(1))
-        answer = match.group(2).strip()
-    else:
-        score = 0.0
-        answer = "No exact match found."
+def call_llama(prompt):
+    body = {
+        "model": "llama3:3.2",
+        "prompt": prompt,
+        "stream": False,
+        "functions": [{
+            "name": "return_exact_answer",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "score": {"type": "number"},
+                    "answer": {"type": "string"}
+                }
+            }
+        }],
+        "function_call": "return_exact_answer"
+    }
+
+    response = requests.post("http://localhost:11434/api/generate", json=body)
+    if response.status_code != 200:
+        return 0.0, "Error from LLM"
+
+    try:
+        parsed = response.json()
+        func_data = parsed.get("message", {}).get("function_call", {}).get("arguments", "{}")
+        func_json = json.loads(func_data)
+        score = float(func_json.get("score", 0))
+        answer = func_json.get("answer", "No answer found.")
+    except Exception as e:
+        score, answer = 0.0, f"Error parsing LLM response: {e}"
+
     return score, answer
 
 @app.route('/', methods=['GET', 'POST'])
@@ -67,24 +89,12 @@ def home():
                 text = get_cached_text_cached((filename, mtime))
                 limited_text = text[:3000]
                 prompt = generate_prompt(limited_text, question, delimiter)
-
-                response = requests.post(
-                    "http://localhost:11434/api/generate",
-                    json={"model": "llama3:3.2", "prompt": prompt, "stream": False}
-                )
-
-                if response.status_code != 200:
-                    continue
-
-                raw = response.json().get("response", "")
-                score_val, answer_text = parse_llm_response(raw)
-
+                score_val, answer_text = call_llama(prompt)
                 ranked_results.append({
                     "file": filename,
                     "score": score_val,
                     "answer": answer_text
                 })
-
             except Exception as e:
                 ranked_results.append({
                     "file": filename,
@@ -121,19 +131,8 @@ def query_api():
     mtime = os.path.getmtime(filepath)
     text = get_cached_text_cached((file.filename, mtime))
     limited_text = text[:3000]
-
     prompt = generate_prompt(limited_text, question, delimiter)
-
-    response = requests.post(
-        "http://localhost:11434/api/generate",
-        json={"model": "llama3:3.2", "prompt": prompt, "stream": False}
-    )
-
-    if response.status_code != 200:
-        return jsonify({"error": "LLM failed"}), 500
-
-    raw = response.json().get("response", "")
-    score, answer = parse_llm_response(raw)
+    score, answer = call_llama(prompt)
 
     return jsonify({
         "question": question,
