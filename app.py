@@ -1,8 +1,9 @@
 from functools import lru_cache
 from flask import Flask, request, jsonify, render_template
-import fitz 
+import fitz  # PyMuPDF
 import os
 import requests
+import re
 
 app = Flask(__name__)
 UPLOAD_FOLDER = 'uploads'
@@ -14,6 +15,31 @@ def get_cached_text_cached(filename_with_mtime):
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     with fitz.open(filepath) as doc:
         return "".join(page.get_text() for page in doc)
+
+def generate_prompt(text, question, delimiter):
+    return (
+        f"You are a strict document answering assistant.\n"
+        f"--- DOCUMENT START ---\n{text}\n--- DOCUMENT END ---\n\n"
+        f"User Question:\n{question}\n\n"
+        f"Rules:\n"
+        f"- Only use the document content to answer.\n"
+        f"- Do not explain, paraphrase, or summarize.\n"
+        f"- If the answer exists, copy the exact sentence or paragraph as-is.\n"
+        f"- If it's a list, use '{delimiter}' before each bullet (e.g., {delimiter} Item1).\n"
+        f"- If no match is found, respond exactly with: No exact match found.\n\n"
+        f"Output Format:\n<score (0 to 10)>: <exact answer>"
+    )
+
+def parse_llm_response(raw):
+    raw = raw.strip()
+    match = re.match(r"^\s*(\d+(?:\.\d+)?)[\s:]+(.*)", raw, re.DOTALL)
+    if match:
+        score = float(match.group(1))
+        answer = match.group(2).strip()
+    else:
+        score = 0.0
+        answer = "No exact match found."
+    return score, answer
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -40,19 +66,7 @@ def home():
                 mtime = os.path.getmtime(filepath)
                 text = get_cached_text_cached((filename, mtime))
                 limited_text = text[:3000]
-
-                prompt = (
-                    f"You are an intelligent PDF document assistant.\n\n"
-                    f"ONLY use the content provided below to answer the question. DO NOT guess or explain anything.\n\n"
-                    f"--- DOCUMENT START ---\n{limited_text}\n--- DOCUMENT END ---\n\n"
-                    f"User Question:\n{question}\n\n"
-                    f"Output Format:\n"
-                    f"<score>: <verbatim answer from document>\n\n"
-                    f"Rules:\n"
-                    f"- Use exact sentences or phrases from the document ONLY.\n"
-                    f"- If it's a list, start each item with '{delimiter}' like this: {delimiter} Item1, {delimiter} Item2\n"
-                    f"- If no answer is found, respond exactly with: No exact match found."
-                )
+                prompt = generate_prompt(limited_text, question, delimiter)
 
                 response = requests.post(
                     "http://localhost:11434/api/generate",
@@ -63,12 +77,8 @@ def home():
                     continue
 
                 raw = response.json().get("response", "")
-                parts = raw.split(":", 1)
-                try:
-                    score_val = float(parts[0].strip())
-                except:
-                    score_val = 0.0
-                answer_text = parts[1].strip() if len(parts) > 1 else "No answer given."
+                score_val, answer_text = parse_llm_response(raw)
+
                 ranked_results.append({
                     "file": filename,
                     "score": score_val,
@@ -83,6 +93,7 @@ def home():
                 })
 
         ranked_results.sort(key=lambda x: x["score"], reverse=True)
+
         if ranked_results:
             best_result = ranked_results[0]
             answer = best_result["answer"]
@@ -111,18 +122,7 @@ def query_api():
     text = get_cached_text_cached((file.filename, mtime))
     limited_text = text[:3000]
 
-    prompt = (
-        f"You are an intelligent PDF document assistant.\n\n"
-        f"ONLY use the content provided below to answer the question. DO NOT guess or explain anything.\n\n"
-        f"--- DOCUMENT START ---\n{limited_text}\n--- DOCUMENT END ---\n\n"
-        f"User Question:\n{question}\n\n"
-        f"Output Format:\n"
-        f"<score>: <verbatim answer from document>\n\n"
-        f"Rules:\n"
-        f"- Use exact sentences or phrases from the document ONLY.\n"
-        f"- If it's a list, start each item with '{delimiter}' like this: {delimiter} Item1, {delimiter} Item2\n"
-        f"- If no answer is found, respond exactly with: No exact match found."
-    )
+    prompt = generate_prompt(limited_text, question, delimiter)
 
     response = requests.post(
         "http://localhost:11434/api/generate",
@@ -133,13 +133,7 @@ def query_api():
         return jsonify({"error": "LLM failed"}), 500
 
     raw = response.json().get("response", "")
-    parts = raw.split(":", 1)
-    try:
-        score = float(parts[0].strip())
-    except:
-        score = 0.0
-
-    answer = parts[1].strip() if len(parts) > 1 else "No answer generated"
+    score, answer = parse_llm_response(raw)
 
     return jsonify({
         "question": question,
