@@ -1,6 +1,6 @@
 from functools import lru_cache
 from flask import Flask, request, jsonify, render_template
-import fitz  # PyMuPDF
+import fitz 
 import os
 import requests
 
