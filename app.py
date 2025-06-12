@@ -1,6 +1,6 @@
 from functools import lru_cache
 from flask import Flask, request, jsonify, render_template
-import fitz 
+import fitz  # PyMuPDF
 import os
 import requests
 
@@ -42,17 +42,17 @@ def home():
                 limited_text = text[:3000]
 
                 prompt = (
-    f"You are a document reader assistant.\n"
-    f"Document content:\n\n{limited_text}\n\n"
-    f"Question:\n{question}\n\n"
-    f"Instructions:\n"
-    f"- ONLY answer using the document content above.\n"
-    f"- Do NOT add explanations, do NOT paraphrase, and do NOT say anything that isn't quoted directly from the document.\n"
-    f"- If the answer is a list, use '{delimiter}' to start each bullet (e.g., {delimiter} Item1, {delimiter} Item2).\n"
-    f"- If the answer does not exist in the document, respond with exactly: No exact match found.\n"
-    f"- DO NOT generate anything else.\n"
-    f"\nFormat: <score>: <exact answer>"
-)
+                    f"You are an intelligent PDF document assistant.\n\n"
+                    f"ONLY use the content provided below to answer the question. DO NOT guess or explain anything.\n\n"
+                    f"--- DOCUMENT START ---\n{limited_text}\n--- DOCUMENT END ---\n\n"
+                    f"User Question:\n{question}\n\n"
+                    f"Output Format:\n"
+                    f"<score>: <verbatim answer from document>\n\n"
+                    f"Rules:\n"
+                    f"- Use exact sentences or phrases from the document ONLY.\n"
+                    f"- If it's a list, start each item with '{delimiter}' like this: {delimiter} Item1, {delimiter} Item2\n"
+                    f"- If no answer is found, respond exactly with: No exact match found."
+                )
 
                 response = requests.post(
                     "http://localhost:11434/api/generate",
@@ -68,7 +68,6 @@ def home():
                     score_val = float(parts[0].strip())
                 except:
                     score_val = 0.0
-
                 answer_text = parts[1].strip() if len(parts) > 1 else "No answer given."
                 ranked_results.append({
                     "file": filename,
@@ -84,7 +83,6 @@ def home():
                 })
 
         ranked_results.sort(key=lambda x: x["score"], reverse=True)
-
         if ranked_results:
             best_result = ranked_results[0]
             answer = best_result["answer"]
@@ -114,17 +112,17 @@ def query_api():
     limited_text = text[:3000]
 
     prompt = (
-    f"You are a document reader assistant.\n"
-    f"Document content:\n\n{limited_text}\n\n"
-    f"Question:\n{question}\n\n"
-    f"Instructions:\n"
-    f"- ONLY answer using the document content above.\n"
-    f"- Do NOT add explanations, do NOT paraphrase, and do NOT say anything that isn't quoted directly from the document.\n"
-    f"- If the answer is a list, use '{delimiter}' to start each bullet (e.g., {delimiter} Item1, {delimiter} Item2).\n"
-    f"- If the answer does not exist in the document, respond with exactly: No exact match found.\n"
-    f"- DO NOT generate anything else.\n"
-    f"\nFormat: <score>: <exact answer>"
-)
+        f"You are an intelligent PDF document assistant.\n\n"
+        f"ONLY use the content provided below to answer the question. DO NOT guess or explain anything.\n\n"
+        f"--- DOCUMENT START ---\n{limited_text}\n--- DOCUMENT END ---\n\n"
+        f"User Question:\n{question}\n\n"
+        f"Output Format:\n"
+        f"<score>: <verbatim answer from document>\n\n"
+        f"Rules:\n"
+        f"- Use exact sentences or phrases from the document ONLY.\n"
+        f"- If it's a list, start each item with '{delimiter}' like this: {delimiter} Item1, {delimiter} Item2\n"
+        f"- If no answer is found, respond exactly with: No exact match found."
+    )
 
     response = requests.post(
         "http://localhost:11434/api/generate",
@@ -142,6 +140,7 @@ def query_api():
         score = 0.0
 
     answer = parts[1].strip() if len(parts) > 1 else "No answer generated"
+
     return jsonify({
         "question": question,
         "file": file.filename,
