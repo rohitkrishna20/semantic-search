@@ -42,16 +42,16 @@ def home():
                 limited_text = text[:3000]
 
                 prompt = (
-    f"Given the document content below:\n\n{limited_text}\n\n"
-    f"The user asks:\n\n{question}\n\n"
+    f"You are a document reader assistant.\n"
+    f"Document content:\n\n{limited_text}\n\n"
+    f"Question:\n{question}\n\n"
     f"Instructions:\n"
-    f"- Only search this document for the answer.\n"
-    f"- Use only clean formatting — no slashes (/), HTML tags, or added symbols.\n"
-    f"- If listing items, use '{delimiter}' before each item and a space after, like this: {delimiter} Item1 {delimiter} Item2 {delimiter} Item3.\n"
-    f"- Do not include any commentary, notes, or reasoning.\n"
-    f"- Copy the exact sentence or phrases from the document.\n"
-    f"- If no answer is found, respond exactly with: 'No exact match found.'\n\n"
-    f"Format:\n<score>: <exact answer>"
+    f"- ONLY answer using the document content above.\n"
+    f"- Do NOT add explanations, do NOT paraphrase, and do NOT say anything that isn't quoted directly from the document.\n"
+    f"- If the answer is a list, use '{delimiter}' to start each bullet (e.g., {delimiter} Item1, {delimiter} Item2).\n"
+    f"- If the answer does not exist in the document, respond with exactly: No exact match found.\n"
+    f"- DO NOT generate anything else.\n"
+    f"\nFormat: <score>: <exact answer>"
 )
 
                 response = requests.post(
@@ -114,16 +114,16 @@ def query_api():
     limited_text = text[:3000]
 
     prompt = (
-    f"Given the document content below:\n\n{limited_text}\n\n"
-    f"The user asks:\n\n{question}\n\n"
+    f"You are a document reader assistant.\n"
+    f"Document content:\n\n{limited_text}\n\n"
+    f"Question:\n{question}\n\n"
     f"Instructions:\n"
-    f"- Only search this document for the answer.\n"
-    f"- Use only clean formatting — no slashes (/), HTML tags, or added symbols.\n"
-    f"- If listing items, use '{delimiter}' before each item and a space after, like this: {delimiter} Item1 {delimiter} Item2 {delimiter} Item3.\n"
-    f"- Do not include any commentary, notes, or reasoning.\n"
-    f"- Copy the exact sentence or phrases from the document.\n"
-    f"- If no answer is found, respond exactly with: 'No exact match found.'\n\n"
-    f"Format:\n<score>: <exact answer>"
+    f"- ONLY answer using the document content above.\n"
+    f"- Do NOT add explanations, do NOT paraphrase, and do NOT say anything that isn't quoted directly from the document.\n"
+    f"- If the answer is a list, use '{delimiter}' to start each bullet (e.g., {delimiter} Item1, {delimiter} Item2).\n"
+    f"- If the answer does not exist in the document, respond with exactly: No exact match found.\n"
+    f"- DO NOT generate anything else.\n"
+    f"\nFormat: <score>: <exact answer>"
 )
 
     response = requests.post(
