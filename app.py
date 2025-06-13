@@ -15,34 +15,34 @@ def get_cached_text_cached(filename_with_mtime):
     with fitz.open(filepath) as doc:
         return "".join(page.get_text() for page in doc)
 
-def generate_prompt(text, question, delimiter="*"):
+def generate_prompt(text, question, delimiter):
     return (
-        f"You are a document reading assistant.\n\n"
-        f"Document:\n{text}\n\n"
-        f"Question:\n{question}\n\n"
+        f"You are a PDF document assistant. Only use the content shown below to answer.\n\n"
+        f"PDF Content:\n{text}\n\n"
+        f"User Question:\n{question}\n\n"
         f"Instructions:\n"
-        f"- Only use content from the document above.\n"
-        f"- DO NOT explain your reasoning, and DO NOT paraphrase.\n"
-        f"- If it’s a list, start each line with '{delimiter}'.\n"
-        f"- If no match is found, respond exactly with: No exact match found.\n\n"
+        f"- Answer ONLY using content from the above document.\n"
+        f"- DO NOT add commentary or summaries.\n"
+        f"- If the answer is a list, start each item with '{delimiter}'\n"
+        f"- If no answer is found, reply with exactly: No exact match found.\n"
+        f"- Your response must start with a score (0–10), then a colon, then the exact answer.\n"
         f"Format:\n<score>: <exact answer>"
     )
 
-def parse_llm_response(raw):
-    parts = raw.split(":", 1)
+def parse_llm_response(response_text):
     try:
-        score = float(parts[0].strip())
-        answer = parts[1].strip() if len(parts) > 1 else "No answer."
-    except:
-        score = 0.0
-        answer = "Error from LLM"
-    return score, answer
+        score_part, answer_part = response_text.strip().split(":", 1)
+        score = float(score_part.strip())
+        answer = answer_part.strip()
+        return score, answer
+    except Exception:
+        return 0.0, "Error from LLM"
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
     answer = None
-    score = None
     question = None
+    score = None
     best_file = None
     uploaded_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('.pdf')]
 
@@ -67,13 +67,14 @@ def home():
 
                 response = requests.post(
                     "http://localhost:11434/api/generate",
-                    json={"model": "llama3.2", "prompt": prompt, "stream": False}
+                    json={"model": "llama3:3.2", "prompt": prompt, "stream": False}
                 )
 
                 if response.status_code != 200:
-                    raise Exception("LLM call failed")
+                    continue
 
                 raw = response.json().get("response", "")
+                print(f"LLM RAW RESPONSE ({filename}):", raw)  # 🔍 For debugging
                 score_val, answer_text = parse_llm_response(raw)
 
                 ranked_results.append({
@@ -118,17 +119,19 @@ def query_api():
     mtime = os.path.getmtime(filepath)
     text = get_cached_text_cached((file.filename, mtime))
     limited_text = text[:3000]
+
     prompt = generate_prompt(limited_text, question, delimiter)
 
     response = requests.post(
         "http://localhost:11434/api/generate",
-        json={"model": "llama3.2", "prompt": prompt, "stream": False}
+        json={"model": "llama3:3.2", "prompt": prompt, "stream": False}
     )
 
     if response.status_code != 200:
         return jsonify({"error": "LLM failed"}), 500
 
     raw = response.json().get("response", "")
+    print(f"LLM RAW RESPONSE (API):", raw)  # 🔍 For debugging
     score, answer = parse_llm_response(raw)
 
     return jsonify({
