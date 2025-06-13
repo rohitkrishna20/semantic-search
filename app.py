@@ -2,6 +2,7 @@ from functools import lru_cache
 from flask import Flask, request, jsonify, render_template
 import fitz
 import os
+import re
 import requests
 
 app = Flask(__name__)
@@ -27,6 +28,9 @@ def generate_prompt(text, question, delimiter):
         f"- If the answer is a list, prefix each item with '{delimiter}'.\n"
         f"- If no match is found, return exactly: No exact match found.\n"
     )
+
+def strip_html_tags(text):
+    return re.sub(r'<[^>]+>', '', text)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -62,13 +66,14 @@ def home():
                     })
                     continue
 
-                answer_raw = response.json().get("response", "").strip()
-                score_val = 1.0 if "No exact match found" not in answer_raw else 0.0
+                raw_answer = response.json().get("response", "").strip()
+                clean_answer = strip_html_tags(raw_answer)
+                score_val = 1.0 if "No exact match found" not in clean_answer else 0.0
 
                 ranked_results.append({
                     "file": filename,
                     "score": score_val,
-                    "answer": answer_raw
+                    "answer": clean_answer
                 })
 
             except Exception as e:
@@ -119,14 +124,15 @@ def query_api():
     if response.status_code != 200:
         return jsonify({"error": "LLM error"}), 500
 
-    answer = response.json().get("response", "").strip()
-    score = 1.0 if "No exact match found" not in answer else 0.0
+    raw_answer = response.json().get("response", "").strip()
+    clean_answer = strip_html_tags(raw_answer)
+    score = 1.0 if "No exact match found" not in clean_answer else 0.0
 
     return jsonify({
         "question": question,
         "file": file.filename,
         "score": score,
-        "answer": answer
+        "answer": clean_answer
     })
 
 if __name__ == '__main__':
