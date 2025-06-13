@@ -1,6 +1,6 @@
 from functools import lru_cache
 from flask import Flask, request, jsonify, render_template
-import fitz
+import fitz  # PyMuPDF
 import os
 import re
 import requests
@@ -16,6 +16,9 @@ def get_cached_text_cached(filename_with_mtime):
     with fitz.open(filepath) as doc:
         return "".join(page.get_text() for page in doc)
 
+def strip_html_tags(text):
+    return re.sub(r'<[^>]+>', '', text)
+
 def generate_prompt(text, question, delimiter):
     return (
         f"You are a helpful assistant strictly answering based only on the document text provided.\n\n"
@@ -28,9 +31,6 @@ def generate_prompt(text, question, delimiter):
         f"- If the answer is a list, prefix each item with '{delimiter}'.\n"
         f"- If no match is found, return exactly: No exact match found.\n"
     )
-
-def strip_html_tags(text):
-    return re.sub(r'<[^>]+>', '', text)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
