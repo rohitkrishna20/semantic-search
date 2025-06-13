@@ -22,6 +22,8 @@ def generate_prompt(text, question, delimiter):
         f"Question: {question}\n\n"
         f"Instructions:\n"
         f"- Only answer using the document content.\n"
+        f"- Do NOT include any HTML tags (e.g., <p>, <h1>, etc.) or formatting — return plain text only.\n"
+        f"- Do NOT summarize or paraphrase.\n"
         f"- If the answer is a list, prefix each item with '{delimiter}'.\n"
         f"- If no match is found, return exactly: No exact match found.\n"
     )
