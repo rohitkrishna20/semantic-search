@@ -40,7 +40,7 @@ def home():
     question = None
     score = None
     best_file = None
-    uploaded_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('.pdf')]
+    uploaded_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.lower().endswith('.pdf')]
 
     if request.method == 'POST':
         question = request.form.get('question')
