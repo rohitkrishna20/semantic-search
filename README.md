@@ -17,7 +17,7 @@ The app uses ollama (LLaMA) 3 to process content on pdf and answer questions tha
    - open terminal and run:
      ```ollama pull llama3```
 3. ** Start the Ollama server: **
-   - run: ```ollama serve``` or ```ollama run llama3```
+   - run: ```ollama serve``` or ```ollama run llama3.2```
      - this will start the the API server at 'http://localhost:11434'.
 
 - Make sure the ollama server is running before starting the flask app.
